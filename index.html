@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mikroelementlar Ilovasi</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 0;
+    background: #f0f4f8; color: #1a202c;
+  }
+  header {
+    background: linear-gradient(135deg, #2b6cb0, #2c5282);
+    color: white; padding: 20px 16px; text-align: center;
+    position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  header h1 { margin: 0; font-size: 1.3rem; }
+  header p { margin: 6px 0 0; font-size: 0.8rem; opacity: 0.9; }
+  .search-box { padding: 12px 16px; background: #fff; }
+  .search-box input {
+    width: 100%; padding: 12px 14px; font-size: 1rem;
+    border: 2px solid #cbd5e0; border-radius: 12px; outline: none;
+  }
+  .search-box input:focus { border-color: #2b6cb0; }
+  .tabs {
+    display: flex; overflow-x: auto; background: #fff;
+    padding: 0 8px 8px; gap: 6px; -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    flex: 0 0 auto; padding: 8px 14px; border-radius: 20px;
+    background: #e2e8f0; border: none; font-size: 0.85rem;
+    cursor: pointer; white-space: nowrap; color: #2d3748;
+  }
+  .tab.active { background: #2b6cb0; color: white; }
+  .subtabs { border-top: 1px solid #edf2f7; padding-top: 8px; }
+  .gt { margin: 20px 0 10px; font-size: 0.95rem; font-weight: 700; color: #2c5282; }
+  .gt:first-child { margin-top: 0; }
+  .container { padding: 12px 16px 40px; }
+  .card {
+    background: #fff; border-radius: 14px; padding: 14px 16px;
+    margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border-left: 5px solid #2b6cb0;
+  }
+  .card h3 {
+    margin: 0 0 4px; font-size: 1.05rem; color: #2c5282;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .card h3 .symbol {
+    font-size: 0.75rem; background: #ebf4ff; color: #2b6cb0;
+    padding: 2px 8px; border-radius: 10px; font-weight: 600;
+  }
+  .row { cursor: pointer; }
+  .norm {
+    display: inline-block; background: #c6f6d5; color: #22543d;
+    font-size: 0.8rem; padding: 4px 10px; border-radius: 10px;
+    margin: 6px 0; font-weight: 600;
+  }
+  .section { margin-top: 8px; font-size: 0.88rem; line-height: 1.5; }
+  .section b { color: #2d3748; display: block; margin-bottom: 2px; }
+  .def { color: #9b2c2c; }
+  .src { color: #2f855a; }
+  .badge {
+    display: inline-block; font-size: 0.7rem; padding: 2px 7px;
+    border-radius: 8px; margin: 2px 3px 2px 0; background: #edf2f7; color: #4a5568;
+  }
+  .pill {
+    display: inline-block; font-size: 0.74rem; padding: 3px 9px;
+    border-radius: 10px; margin: 2px 3px 2px 0; background: #fed7d7; color: #9b2c2c;
+  }
+  .pill.el { background: #ebf4ff; color: #2b6cb0; }
+  .pill.fd { background: #e6fffa; color: #234e52; }
+  .meal { margin-top: 10px; font-size: 0.88rem; line-height: 1.5; }
+  .meal b { display: block; color: #2d3748; margin-bottom: 3px; }
+  .back {
+    background: #edf2f7; color: #2d3748; border: none; padding: 8px 14px;
+    border-radius: 10px; font-size: 0.85rem; cursor: pointer; margin-bottom: 12px;
+  }
+  .no-result { text-align: center; padding: 30px; color: #718096; }
+  .note {
+    background: #fffaf0; border: 1px solid #f6e05e;
+    border-radius: 10px; padding: 12px; font-size: 0.8rem;
+    color: #744210; margin-bottom: 14px; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧬 Mikroelementlar Qo'llanmasi</h1>
+  <p>Normalar • Tanqislik • Oziq-ovqat manbalari</p>
+</header>
+
+<div class="search-box">
+  <input type="text" id="search" placeholder="🔍 Qidirish: temir, anemiya, sut, kalsiy...">
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-cat="all">Barchasi</button>
+  <button class="tab" data-cat="mineral">Minerallar</button>
+  <button class="tab" data-cat="kasallik">Kasalliklar</button>
+</div>
+
+<div class="tabs subtabs" id="ctabs">
+  <button class="tab active" data-ctype="all">Hammasi</button>
+  <button class="tab" data-ctype="micro">Mikroelementlar</button>
+  <button class="tab" data-ctype="makro">Makroelementlar</button>
+  <button class="tab" data-ctype="vitamin">Vitaminlar</button>
+</div>
+
+<div class="tabs subtabs" id="gtabs" style="display:none">
+  <button class="tab" data-group="bolalar">Bolalar</button>
+  <button class="tab active" data-group="ayollar">Ayollar</button>
+  <button class="tab" data-group="erkaklar">Erkaklar</button>
+</div>
+
+<div class="container">
+  <div class="note">
+    ⚠️ <b>Eslatma:</b> Bu ma'lumot faqat ma'lumot berish maqsadida. Aniq tashxis va tavsiya uchun shifokorga murojaat qiling.
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+const data = [
+  {
+    cat: "micro", name: "Temir", symbol: "Fe",
+    norm: "Erkaklar: 8–11 mg | Ayollar: 8–18 mg",
+    n: {
+      bolalar: "1–3 yosh: 7 mg | 4–8: 10 mg | 9–13: 8 mg",
+      ayollar: "14–18: 15 mg | 19–50: 18 mg | 51+: 8 mg | Homilador: 27 mg",
+      erkaklar: "14–18: 11 mg | 19+: 8 mg"
+    },
+    def: "Kamqonlik (anemiya), holsizlik, bosh aylanishi, soch va tirnoq mo'rtligi",
+    dis: ["Temir tanqisligi anemiyasi", "Holsizlik sindromi", "Soch to'kilishi", "Tirnoq mo'rtligi va qo'ziqon shakli", "Bolalarda o'sish va aqliy rivojlanish kechikishi", "Pika (g'oyib oziqga ishtaha)"],
+    src: ["Jigar", "Go'sht", "Loviya", "Ismaloq", "Quritilgan o'rik", "Mayiz"],
+    keys: "temir fe kamqonlik anemiya jigar ismaloq loviya"
+  },
+  {
+    cat: "micro", name: "Rux", symbol: "Zn",
+    norm: "Erkaklar: 11 mg | Ayollar: 8 mg",
+    n: {
+      bolalar: "1–3: 3 mg | 4–8: 5 mg | 9–13: 8 mg",
+      ayollar: "14+: 8 mg | Homilador: 11 mg | Emizish: 12 mg",
+      erkaklar: "14+: 11 mg"
+    },
+    def: "O'sish sekinlashishi, ta'm/hid sezish pasayishi, yaralar sekin bitishi, soch to'kilishi",
+    dis: ["Bolalarda o'sish kechikishi (nanizm)", "Enteropatik akrodermatit", "Ta'm va hid buzilishi (gevziya/anozmiya)", "Yaralarning sekin bitishi", "Soch to'kilishi", "Takroriy infektsiyalar (immunitet pasayishi)"],
+    src: ["Go'sht", "Jigar", "Dengiz mahsulotlari", "Qovoq urug'i", "Yeryong'oq", "Loviya"],
+    keys: "rux zn soch teri yara qovoq urug'i akrodermatit"
+  },
+  {
+    cat: "micro", name: "Yod", symbol: "I",
+    norm: "150 mkg",
+    n: {
+      bolalar: "1–3: 90 mkg | 4–8: 90 mkg | 9–13: 120 mkg",
+      ayollar: "14+: 150 mkg | Homilador: 220 mkg | Emizish: 270 mkg",
+      erkaklar: "14+: 150 mkg"
+    },
+    def: "Bo'qoq (qalqonsimon bez kattalashishi), gipoterioz, bolalarda aqliy rivojlanish kechikishi",
+    dis: ["Endemik bo'qoq (go'r)", "Gipotireoz", "Kretinizm (bolalarda)", "Bolalarda aqliy rivojlanish kechikishi", "Homiladorlikda tug'ruq xavfi"],
+    src: ["Dengiz mahsulotlari", "Baliq", "Yodlangan tuz", "Tuxum", "Sut mahsulotlari"],
+    keys: "yod i bo'qoq qalqonsimon gipotireoz kretinizm baliq tuz"
+  },
+  {
+    cat: "micro", name: "Selen", symbol: "Se",
+    norm: "55 mkg",
+    n: {
+      bolalar: "1–3: 20 mkg | 4–8: 30 mkg | 9–13: 40 mkg",
+      ayollar: "14+: 55 mkg | Emizish: 70 mkg",
+      erkaklar: "14+: 55 mkg"
+    },
+    def: "Mushaklar zaifligi, yurak mushak kasalligi, immunitet pasayishi",
+    dis: ["Keshan kasalligi (yurak mushaki distrofiyasi)", "Kashin-Beck kasalligi (suyak-bo'g'im)", "Mushak zaifligi va og'rig'i", "Immunitet pasayishi", "Tirnoq va soch o'zgarishlari"],
+    src: ["Yong'oq", "Sarimsoq", "Dengiz baliqlari", "Tuxum", "Jigar"],
+    keys: "selen se yurak immunitet yong'oq sarimsoq keshan kashin"
+  },
+  {
+    cat: "micro", name: "Mis", symbol: "Cu",
+    norm: "900 mkg",
+    n: {
+      bolalar: "1–3: 340 mkg | 4–8: 440 mkg | 9–13: 700 mkg",
+      ayollar: "14+: 900 mkg | Emizish: 1300 mkg",
+      erkaklar: "14+: 900 mkg"
+    },
+    def: "Kamqonlik, suyak mo'rtlashishi, immunitet pasayishi",
+    dis: ["Mis tanqisligi anemiyasi (temirga javob bermaydi)", "Neyropeniya va yurish buzilishi", "Suyak zichligi pasayishi (osteoporoz)", "Soch rangi va tuzilishi o'zgarishi", "Immunitet pasayishi"],
+    src: ["Jigar", "Dengiz mahsulotlari", "Yong'oq", "Quruq mevalar", "Kakao", "Qo'ziqorin"],
+    keys: "mis cu kakao qo'ziqorin suyak neyropeniya anemiya"
+  },
+  {
+    cat: "micro", name: "Marganets", symbol: "Mn",
+    norm: "Erkaklar: 2.3 mg | Ayollar: 1.8 mg",
+    n: {
+      bolalar: "1–3: 1.2 mg | 4–8: 1.5 mg | 9–13: 1.6 mg",
+      ayollar: "14+: 1.8 mg",
+      erkaklar: "14+: 2.3 mg"
+    },
+    def: "Suyak tuzilishi buzilishi, o'sish sekinlashishi, glyukoza tolerantligi pasayishi",
+    dis: ["Suyak deformatsiyasi va bo'g'im og'rig'i", "Bolalarda o'sish kechikishi", "Glyukoza tolerantligi buzilishi", "Teri va soch o'zgarishlari"],
+    src: ["Butun don", "Yong'oq", "Choy", "Loviya", "Ananas", "Ismaloq"],
+    keys: "marganets mn suyak choy ananas bo'g'im"
+  },
+  {
+    cat: "micro", name: "Xrom", symbol: "Cr",
+    norm: "Erkaklar: 35 mkg | Ayollar: 25 mkg",
+    n: {
+      bolalar: "1–3: 11 mkg | 4–8: 19 mkg | 9–13: 21–25 mkg",
+      ayollar: "14–50: 25 mkg | 51+: 20 mkg | Homilador: 29 mkg",
+      erkaklar: "14–50: 35 mkg | 51+: 30 mkg"
+    },
+    def: "Qand tolerantligi buzilishi, qandli diabet xavfi oshishi",
+    dis: ["Insulin rezistentligi", "2-tipli qandli diabet xavfi", "Qon lipidlarining buzilishi (ateroskleroz xavfi)"],
+    src: ["Jigar", "Go'sht", "Butun don", "Yong'oq"],
+    keys: "xrom cr qand diabet shakar insulin ateroskleroz"
+  },
+  {
+    cat: "micro", name: "Molibden", symbol: "Mo",
+    norm: "45 mkg",
+    n: {
+      bolalar: "1–3: 3 mkg | 4–8: 9 mkg | 9–13: 17 mkg",
+      ayollar: "14+: 45 mkg",
+      erkaklar: "14+: 45 mkg"
+    },
+    def: "Ta'sirchanlik, bosh og'rig'i, ko'ngil aynishi",
+    dis: ["Sulfit oksidaza yetishmovchiligi (kam uchraydi)", "Bosh og'rig'i va ta'sirchanlik", "Ko'ngil aynishi, ishtaning pasayishi"],
+    src: ["Sut", "Dukkaklilar", "Butun don non", "Yashil bargli sabzavotlar"],
+    keys: "molibden mo sut dukkakli sulfit"
+  },
+  {
+    cat: "micro", name: "Ftor", symbol: "F",
+    norm: "Erkaklar: 4 mg | Ayollar: 3 mg",
+    n: {
+      bolalar: "1–3: 0.7 mg | 4–8: 1.7 mg | 9–13: 2.2 mg",
+      ayollar: "14+: 3 mg",
+      erkaklar: "14+: 4 mg"
+    },
+    def: "Tish kariesi, suyak mo'rtlashishi (osteoporoz) xavfi",
+    dis: ["Tish kariesi", "Osteoporoz xavfi", "Tish emalining zaiflashishi"],
+    src: ["Dengiz mahsulotlari", "Choy", "Ftorlangan suv"],
+    keys: "ftor f tish karies suyak choy emal"
+  },
+  {
+    cat: "micro", name: "Kobalt", symbol: "Co",
+    norm: "2.4 mkg (Vitamin B12 tarkibida)",
+    n: {
+      bolalar: "RDA belgilanmagan — B12 orqali olinadi",
+      ayollar: "RDA belgilanmagan — B12 orqali olinadi",
+      erkaklar: "RDA belgilanmagan — B12 orqali olinadi"
+    },
+    def: "Kamqonlik, holsizlik (asosan B12 tanqisligi bilan birga namoyon bo'ladi)",
+    dis: ["Vitamin B12 tanqisligi anemiyasi", "Holsizlik sindromi"],
+    src: ["Jigar", "Go'sht", "Baliq", "Tuxum", "Sut mahsulotlari"],
+    keys: "kobalt co b12 kamqonlik jigar"
+  },
+  {
+    cat: "micro", name: "Kremniy", symbol: "Si",
+    norm: "RDA belgilanmagan (taxminan 20–50 mg)",
+    n: {
+      bolalar: "RDA belgilanmagan (taxminan 20–50 mg)",
+      ayollar: "RDA belgilanmagan (taxminan 20–50 mg)",
+      erkaklar: "RDA belgilanmagan (taxminan 20–50 mg)"
+    },
+    def: "Suyak va biriktiruvchi to'qima zaiflashishi, soch va tirnoq mo'rtligi, yaralar sekin bitishi",
+    dis: ["Suyak zichligining pasayishi", "Tirnoq mo'rtligi va qatlamlanishi", "Sochning yupqalashishi", "Yaralarning sekin bitishi", "Biriktiruvchi to'qima (bog'lama) zaifligi"],
+    src: ["Suli", "Arpa", "Bug'doy kepagi", "Qo'ziqorin", "Bodring"],
+    keys: "kremniy si suyak tirnoq soch yara suli kepagi arpa"
+  },
+  {
+    cat: "makro", name: "Kalsiy", symbol: "Ca",
+    norm: "1000 mg (50 yoshdan keyin: 1200 mg)",
+    n: {
+      bolalar: "1–3: 700 mg | 4–8: 1000 mg | 9–18: 1300 mg",
+      ayollar: "19–50: 1000 mg | 51+: 1200 mg | Homilador: 1000 mg",
+      erkaklar: "19–70: 1000 mg | 71+: 1200 mg"
+    },
+    def: "Osteoporoz, suyak mo'rtlashishi va sinuvchanligi, tishlar zaiflashishi, mushak tortishishi (sudorga)",
+    dis: ["Osteoporoz va patologik sinishlar", "Raxit (bolalarda)", "Tetaniya va mushak spazmi", "Tishlar va tirnoq zaifligi", "Ikkinchi darajali giperparatireoz"],
+    src: ["Sut", "Pishloq", "Qatiq", "Ismaloq", "Brokkoli", "Sardina"],
+    keys: "kalsiy ca osteoporoz suyak sinish tish sudorga spazm raxit sut pishloq qatiq tetaniya"
+  },
+  {
+    cat: "makro", name: "Magniy", symbol: "Mg",
+    norm: "Erkaklar: 400 mg | Ayollar: 310 mg",
+    n: {
+      bolalar: "1–3: 80 mg | 4–8: 130 mg | 9–13: 240 mg | 14–18: 360–410 mg",
+      ayollar: "14–18: 360 mg | 19–30: 310 mg | 31+: 320 mg | Homilador: 350–360 mg",
+      erkaklar: "14–18: 410 mg | 19–30: 400 mg | 31+: 420 mg"
+    },
+    def: "Mushak tortishishi va sudorga, yurak aritmiyasi, uyqu buzilishi, holsizlik, bosh og'rig'i, ta'sirchanlik",
+    dis: ["Mushak tortishishi va sudorga", "Yurak aritmiyasi", "Gipokaltsemiya va gipokaliemiya", "Migren va bosh og'rig'i", "Uyqu buzilishi, ta'sirchanlik", "Arterial gipertoniya xavfi"],
+    src: ["Qovoq urug'i", "Kakao", "Banan", "No'xat", "Grechka", "Yashil bargli sabzavotlar"],
+    keys: "magniy mg sudorga spazm yurak aritmiya uyqu stress migren gipertoniya kakao banan grechka no'xat"
+  },
+  {
+    cat: "makro", name: "Fosfor", symbol: "P",
+    norm: "700 mg",
+    n: {
+      bolalar: "1–3: 460 mg | 4–8: 500 mg | 9–18: 1250 mg",
+      ayollar: "14+: 700 mg | Homilador: 700 mg",
+      erkaklar: "14+: 700 mg"
+    },
+    def: "Suyak og'rig'i, ishtaning yo'qolishi, mushak zaifligi, es-hush chalkashligi",
+    dis: ["Gipofosfatemiya", "Osteomalatsiya va suyak og'rig'i", "Mushak zaifligi (rabdomioliz xavfi)", "Ishata yo'qolishi", "Chalkashlik (og'ir tanqislikda)"],
+    src: ["Go'sht", "Baliq", "Sut", "Tuxum", "Dukkaklilar", "Kungaboqar urug'i"],
+    keys: "fosfor p suyak og'rig'i ishta mushak chalkashlik gipofosfatemiya go'sht baliq sut tuxum"
+  },
+  {
+    cat: "makro", name: "Kaliy", symbol: "K",
+    norm: "2600–3400 mg",
+    n: {
+      bolalar: "1–3: 2000–2600 mg | 4–8: 2300–2900 mg | 9–13: 2500–3400 mg",
+      ayollar: "14–18: 2600 mg | 19+: 2600 mg | Homilador: 2900 mg",
+      erkaklar: "14–18: 3000 mg | 19+: 3400 mg"
+    },
+    def: "Yurak aritmiyasi, mushak zaifligi va tortishishi, qon bosimining oshishi, qabziyat",
+    dis: ["Gipokaliemiya", "Yurak aritmiyasi", "Mushak zaifligi va tortishishi", "Arterial gipertoniya", "Qabziyat", "Buyrakda kalsiy toshlari xavfi"],
+    src: ["Banan", "Kartoshka", "Quritilgan o'rik", "Avokado", "Pomidor", "Loviya"],
+    keys: "kaliy k yurak aritmiya qon bosimi gipertoniya gipokaliemiya mushak qabziyat banan kartoshka o'rik avokado"
+  },
+  {
+    cat: "makro", name: "Natriy", symbol: "Na",
+    norm: "1500 mg (kuniga maksimum 2300 mg)",
+    n: {
+      bolalar: "1–3: 1000 mg | 4–8: 1200 mg | 9–13: 1500 mg",
+      ayollar: "14–50: 1500 mg | 51–70: 1300 mg | 71+: 1200 mg",
+      erkaklar: "14–50: 1500 mg | 51–70: 1300 mg | 71+: 1200 mg"
+    },
+    def: "Kamligida: holsizlik, bosh aylanishi, ko'ngil aynishi, mushak spazmi. Ortiqchasi: yuqori qon bosimi, shishish",
+    dis: ["Giponatriremiya", "Holsizlik va bosh aylanishi", "Ko'ngil aynishi va mushak spazmi", "Ortiqchasi: arterial gipertoniya", "Ortiqchasi: shishish va yurak yuklanishi"],
+    src: ["Tuz", "Soya sousi", "Pishloq", "Konserva mahsulotlari", "Non"],
+    keys: "natriy na tuz qon bosimi shishish edema gipertoniya giponatriremiya ko'ngil aynishi"
+  },
+  {
+    cat: "makro", name: "Xlor", symbol: "Cl",
+    norm: "2300 mg",
+    n: {
+      bolalar: "1–3: 1000 mg | 4–8: 1200 mg | 9–13: 1500 mg",
+      ayollar: "14–50: 2300 mg | 51–70: 2000 mg | 71+: 1800 mg",
+      erkaklar: "14–50: 2300 mg | 51–70: 2000 mg | 71+: 1800 mg"
+    },
+    def: "Holsizlik, mushak spazmi, ishtening buzilishi, organizmning suvsizlanishi",
+    dis: ["Gipoxloremiya", "Metabolik alkaloza", "Suvsizlanish", "Ishata buzilishi va holsizlik"],
+    src: ["Tuz", "Pomidor", "Marul", "Guruch", "Dengiz mahsulotlari"],
+    keys: "xlor cl tuz pomidor marul suvsizlanish alkaloza ishata"
+  },
+  {
+    cat: "vitamin", name: "Vitamin A", symbol: "Retinol",
+    norm: "Erkaklar: 900 mkg | Ayollar: 700 mkg",
+    n: {
+      bolalar: "1–3: 300 mkg | 4–8: 400 mkg | 9–13: 600 mkg",
+      ayollar: "14+: 700 mkg | Homilador: 770 mkg | Emizish: 1300 mkg",
+      erkaklar: "14+: 900 mkg"
+    },
+    def: "Tun ko'rligi, ko'z quruqligi, teri quruqligi va g'adir-budur bo'lishi, immunitet pasayishi, bolalarda o'sish sekinlashishi",
+    dis: ["Tun ko'rligi (noktalopiya)", "Xeroftalmiya (ko'z quruqligi)", "Keratomalatsiya va ko'z shikastlanishi", "Takroriy nafas yo'llari infeksiyasi", "Follikulyar giperkeratoz (teri g'adir-budurlanishi)", "Bolalarda o'sish kechikishi"],
+    src: ["Sabzi", "Jo'ka", "Qaralak", "Jigar", "Tuxum sariog'i", "Shoptul", "Ismaloq"],
+    keys: "a vitamin retinol karotin tun korligi noktalopiya xeroftalmiya ko'z quruq teri immunitet sabzi jo'ka qaralak shoptul"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B1", symbol: "Tiamin",
+    norm: "Erkaklar: 1.2 mg | Ayollar: 1.1 mg",
+    n: {
+      bolalar: "1–3: 0.5 mg | 4–8: 0.6 mg | 9–13: 0.9 mg",
+      ayollar: "14+: 1.1 mg | Homilador: 1.4 mg",
+      erkaklar: "14+: 1.2 mg"
+    },
+    def: "Beri-beri: oyoq-qo'llarda uyishish va og'riq, mushak zaifligi, yurak urishi tezlashishi, xotira va diqqat pasayishi",
+    dis: ["Beri-beri (quruq va yosh shakl)", "Polineyropatiya", "Wernicke-Korsakoff sindromi", "Yurak urishining tezlashishi / yurak yetishmovchiligi", "Xotira va diqqat pasayishi"],
+    src: ["Loviya", "Cho'chqa go'shti", "Qo'ziqorin", "Suli", "Kungaboqar urug'i"],
+    keys: "b1 tiamin beri-beri uyishish uyushish uyshish yurak xotira diqqat polineyropatiya wernicke loviya suli qo'ziqorin"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B2", symbol: "Riboflavin",
+    norm: "Erkaklar: 1.3 mg | Ayollar: 1.1 mg",
+    n: {
+      bolalar: "1–3: 0.5 mg | 4–8: 0.6 mg | 9–13: 0.8 mg",
+      ayollar: "14+: 1.1 mg | Homilador: 1.4 mg",
+      erkaklar: "14+: 1.3 mg"
+    },
+    def: "Lab chetlari yoriqlari, til qizarishi va og'rig'i, ko'zning yorug'likdan achishishi, teri toshmasi",
+    dis: ["Angular xeylit (lab cheti yorilishi)", "Glossit (til qizarishi va og'rig'i)", "Konyunktivit va fotofobiya", "Seboreya dermatiti", "Temir tanqisligi bilan birga anemiya"],
+    src: ["Sut", "Pishloq", "Tuxum", "Jigar", "Badam", "Qo'ziqorin"],
+    keys: "b2 riboflavin lab yoriq xeylit til glossit ko'z achishishi fotofobiya seboreya teri sut tuxum badam"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B3", symbol: "Niasin (PP)",
+    norm: "Erkaklar: 16 mg | Ayollar: 14 mg",
+    n: {
+      bolalar: "1–3: 6 mg | 4–8: 8 mg | 9–13: 12 mg",
+      ayollar: "14+: 14 mg | Homilador: 18 mg",
+      erkaklar: "14+: 16 mg"
+    },
+    def: "Pellagra: terining qoralanishi va yallig'lanishi, diareya, xotira va ong buzilishi, holsizlik",
+    dis: ["Pellagra", "Quyoshga chiqqan joylarda teri dermatiti", "Diareya va hazm buzilishi", "Demensiy va chalkashlik", "Holsizlik sindromi"],
+    src: ["Go'sht", "Baliq", "Yeryong'oq", "Guruch", "Qo'ziqorin"],
+    keys: "b3 niasin pp pellagra teri qora diareya ong demensiy chalkashlik yong'oq guruch baliq"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B5", symbol: "Pantoten kis.",
+    norm: "5 mg",
+    n: {
+      bolalar: "1–3: 2 mg | 4–8: 3 mg | 9–13: 4 mg",
+      ayollar: "14+: 5 mg | Emizish: 7 mg",
+      erkaklar: "14+: 5 mg"
+    },
+    def: "Holsizlik, uyqu buzilishi, qo'l-oyoqlarda yonish hissi, sochning erta oqarishi",
+    dis: ["Akroparesteziya (oyoq-qo'llarda yonish hissi)", "Holsizlik sindromi", "Uyqu buzilishi", "Sochning erta oqarishi", "Teri toshmasi"],
+    src: ["Go'sht", "Tuxum", "Avokado", "Brokkoli", "Guruch", "Yong'oq"],
+    keys: "b5 pantoten kislota holsizlik uyqu yonish hissi soch oqarishi teri avokado tuxum"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B6", symbol: "Piridoksin",
+    norm: "1.3–1.7 mg",
+    n: {
+      bolalar: "1–3: 0.5 mg | 4–8: 0.6 mg | 9–13: 1.0 mg",
+      ayollar: "19–50: 1.3 mg | 51+: 1.5 mg | Homilador: 1.9 mg",
+      erkaklar: "19–50: 1.3 mg | 51+: 1.7 mg | Homilador: 1.9 mg"
+    },
+    def: "Teri toshmasi va dermatit, til yallig'lanishi, kamqonlik, chalkashlik, bolalarda tutqanoq",
+    dis: ["Sideroblast anemiya", "Seborreye dermatit va teri toshmasi", "Glossit va cheilit", "Polineyropatiya", "Bolalarda tutqanoq", "Chalkashlik va depressiya"],
+    src: ["Tovuq go'shti", "Baliq", "Kartoshka", "Banan", "No'xat", "Yong'oq"],
+    keys: "b6 piridoksin dermatit til glossit anemiya sideroblast polineyropatiya tutqanoq chalkashlik depressiya tovuq banan no'xat"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B7", symbol: "Biotin",
+    norm: "30 mkg",
+    n: {
+      bolalar: "1–3: 8 mkg | 4–8: 12 mkg | 9–13: 20 mkg",
+      ayollar: "14+: 30 mkg | Emizish: 35 mkg",
+      erkaklar: "14+: 30 mkg"
+    },
+    def: "Soch to'kilishi, tirnoq mo'rtligi va qatlamlanishi, teri toshmasi, holsizlik",
+    dis: ["Soch to'kilishi (alopesiya)", "Tirnoq mo'rtligi va qatlamlanishi", "Perioral dermatit (teri toshmasi)", "Kon'yunktivit", "Holsizlik va mushak og'rig'i"],
+    src: ["Tuxum sariog'i", "Yong'oq", "Suli", "Qovoq urug'i", "Ismaloq"],
+    keys: "b7 biotin soch to'kilishi alopesiya tirnoq mo'rt qatlamlanish teri toshma dermatit tuxum sariog'i yong'oq"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B9", symbol: "Foliy kis.",
+    norm: "400 mkg (homiladorlikda: 600 mkg)",
+    n: {
+      bolalar: "1–3: 150 mkg | 4–8: 200 mkg | 9–13: 300 mkg",
+      ayollar: "14+: 400 mkg | Homilador: 600 mkg | Emizish: 500 mkg",
+      erkaklar: "14+: 400 mkg"
+    },
+    def: "Megablastli kamqonlik, holsizlik, til og'rig'i; homiladorlikda yetishmasligi — chaqaloqda nerv naychasi nuqsoni",
+    dis: ["Megablastli (megaloblast) anemiya", "Homiladorlikda nerv naychasi nuqsoni", "Gipergomotsisteinemiya (tomir xavfi)", "Glossit va ishtaning pasayishi", "Bolalarda o'sish kechikishi"],
+    src: ["Yashil bargli sabzavotlar", "Loviya", "No'xat", "Jigar", "Kungaboqar urug'i"],
+    keys: "b9 foliy kislotasi folat anemiya megablast homiladorlik nerv naychasi gomotsistein jigar loviya no'xat ismaloq"
+  },
+  {
+    cat: "vitamin", name: "Vitamin B12", symbol: "Kobalamin",
+    norm: "2.4 mkg",
+    n: {
+      bolalar: "1–3: 1.2 mkg | 4–8: 1.8 mkg | 9–13: 1.8 mkg",
+      ayollar: "14+: 2.4 mkg | Homilador: 2.6 mkg | Emizish: 2.8 mkg",
+      erkaklar: "14+: 2.4 mkg"
+    },
+    def: "Kamqonlik, qo'l va oyoqlarda uyishish, yurish barqarorligi buzilishi, xotira va ong pasayishi, til qizarishi",
+    dis: ["Pernitsioz va megaloblast anemiya", "Subakkut funikulyar miyeloz", "Polineyropatiya (qo'l-oyoqda uyishish)", "Yurish barqarorligi buzilishi", "Xotira pasayishi va demensiy xavfi", "Glossit va aftoz yara"],
+    src: ["Jigar", "Go'sht", "Baliq", "Tuxum", "Sut mahsulotlari"],
+    keys: "b12 kobalamin anemiya pernitsioz megaloblast uyishish uyushish uyshish yurish barqarorlik xotira demensiy glossit vegetarian jigar go'sht"
+  },
+  {
+    cat: "vitamin", name: "Vitamin C", symbol: "Askorbin",
+    norm: "Erkaklar: 90 mg | Ayollar: 75 mg (chekuvchilar: +35 mg)",
+    n: {
+      bolalar: "1–3: 15 mg | 4–8: 25 mg | 9–13: 45 mg",
+      ayollar: "14–18: 65 mg | 19+: 75 mg | Homilador: 80 mg | Chekuvchi: +35 mg",
+      erkaklar: "14–18: 75 mg | 19+: 90 mg | Chekuvchi: +35 mg"
+    },
+    def: "Skurit (tsinga): tish eti qonashi, tishlar linshashi, yaralar sekin bitishi, moddaklar, holsizlik, immunitet pasayishi",
+    dis: ["Skurit (tsinga)", "Tish eti qonashi va tish yo'qolishi", "Yaralarning sekin bitishi", "Mayda moddak va qon quyishlar", "Anemiya xavfi (temir so'rilishi pasayadi)", "Takroriy infektsiyalar"],
+    src: ["Ito'plaq (shipovnik)", "Bolg'or qalampiri", "Qulupnay", "Limon", "Kivi", "Brokkoli"],
+    keys: "c vitamin askorbin kislota skurit tsinga eti qonashi tish linshash yara moddak immunitet anemiya limon ito'plaq qalampir kivi"
+  },
+  {
+    cat: "vitamin", name: "Vitamin D", symbol: "Kalsiferol",
+    norm: "600–800 ME (15–20 mkg)",
+    n: {
+      bolalar: "1–13: 600 ME (15 mkg) | 14–18: 600 ME",
+      ayollar: "19–70: 600 ME (15 mkg) | 71+: 800 ME (20 mkg) | Homilador: 600 ME",
+      erkaklar: "19–70: 600 ME (15 mkg) | 71+: 800 ME (20 mkg)"
+    },
+    def: "Bolalarda raxit, kattalarda osteomalatsiya: suyak og'rig'i, mushak zaifligi, sinish xavfi oshishi",
+    dis: ["Raxit (bolalarda)", "Osteomalatsiya (kattalarda)", "Osteoporoz va ko'p sinish", "Proksimal miyopatiya (mushak zaifligi)", "Ikkinchi darajali giperparatireoz", "Takroriy infektsiyalar"],
+    src: ["Quyosh nuri", "Sarig' baliq", "Baliq moyi", "Tuxum sariog'i", "Boyitilgan sut", "Qo'ziqorin"],
+    keys: "d vitamin kolekalsiferol raxit osteomalatsiya osteoporoz suyak og'rig'i mushak miopatiya sinish paratireoz quyosh baliq moyi tuxum sariog'i"
+  },
+  {
+    cat: "vitamin", name: "Vitamin E", symbol: "Tokoferol",
+    norm: "15 mg",
+    n: {
+      bolalar: "1–3: 6 mg | 4–8: 7 mg | 9–13: 9 mg",
+      ayollar: "14+: 15 mg | Emizish: 19 mg",
+      erkaklar: "14+: 15 mg"
+    },
+    def: "Mushak zaifligi, reflekslarning susayishi, yurak ritmi buzilishi, qon kamqonligi",
+    dis: ["Hemolitik anemiya (yangi tug'ilgan bolalarda)", "Serebellar ataksiya va refleks yo'qolishi", "Periferik neyropatiya", "Miyopatiya (mushak zaifligi)", "Retinopatiya"],
+    src: ["O'simlik yog'i", "Bodom", "Qovoq urug'i", "Ismaloq", "Bug'doy kepagi"],
+    keys: "e vitamin tokoferol mushak refleks ataksiya neyropatiya retinopatiya gemolitik anemiya bodom yog' kepagi ismaloq"
+  },
+  {
+    cat: "vitamin", name: "Vitamin K", symbol: "Filloxinon",
+    norm: "Erkaklar: 120 mkg | Ayollar: 90 mkg",
+    n: {
+      bolalar: "1–3: 30 mkg | 4–8: 55 mkg | 9–13: 60 mkg",
+      ayollar: "19+: 90 mkg",
+      erkaklar: "19+: 120 mkg"
+    },
+    def: "Qonash (burun, tish eti), mayda moddaklar, suyak mo'rtlashishi va sinuvchanlik",
+    dis: ["Gipoprotrrombinemiya (qonash vaqtining uzayishi)", "Yangi tug'ilgan qonash kasalligi", "Burun va tish eti qonashi", "Osteoporoz va sinish xavfi", "Tomir kalsinifikati xavfi (ortiqcha/nuqson)"],
+    src: ["Ismaloq", "Brokkoli", "Oq karam", "Salat bargi", "Qatiq"],
+    keys: "k vitamin filloxinon qonash burun eti moddak prothrombin suyak mo'rt sinish kalsinifikat ismaloq karam brokkoli salat"
+  }
+];
+
+const MEALS = {
+  ertalab: ["Sut", "Boyitilgan sut", "Qatiq", "Sut mahsulotlari", "Suli", "Grechka", "Arpa", "Bug'doy kepagi", "Non", "Butun don non", "Butun don", "Tuxum", "Tuxum sariog'i", "Pishloq", "Kakao", "Banan", "Quritilgan o'rik", "Mayiz", "Quruq mevalar", "Ananas", "Shoptul", "Qulupnay", "Kivi", "Ito'plaq (shipovnik)", "Limon", "Yong'oq", "Bodom", "Badam", "Yeryong'oq", "Qovoq urug'i", "Kungaboqar urug'i", "Choy", "Ftorlangan suv"],
+  obed: ["Go'sht", "Cho'chqa go'shti", "Tovuq go'shti", "Jigar", "Baliq", "Sarig' baliq", "Dengiz baliqlari", "Dengiz mahsulotlari", "Sardina", "Loviya", "No'xat", "Dukkaklilar", "Guruch", "Kartoshka", "Sabzi", "Jo'ka", "Qaralak", "Pomidor", "Brokkoli", "Qo'ziqorin", "Ismaloq", "Yashil bargli sabzavotlar", "Oq karam", "Marul", "Salat bargi", "Bodring", "Bolg'or qalampiri", "Avokado", "Sarimsoq", "O'simlik yog'i", "Yodlangan tuz", "Tuz", "Ananas", "Shoptul"],
+  kechga: ["Qatiq", "Sut mahsulotlari", "Sut", "Pishloq", "Tuxum", "Baliq", "Sarig' baliq", "Dengiz mahsulotlari", "Sardina", "Ismaloq", "Brokkoli", "Oq karam", "Salat bargi", "Marul", "Bodring", "Pomidor", "Bolg'or qalampiri", "Avokado", "Qo'ziqorin", "Loviya", "No'xat", "Yong'oq", "Bodom", "Badam", "Yeryong'oq", "Qovoq urug'i", "Kungaboqar urug'i", "Suli", "Grechka", "O'simlik yog'i", "Choy"]
+};
+
+const MEAL_LABEL = { ertalab: "🌅 Ertalab (nonushta)", obed: "☀️ Obed (tushlik)", kechga: "🌙 Kechga (kechki ovqat)" };
+const NO_MENU = ["Quyosh nuri", "Konserva mahsulotlari", "Soya sousi"];
+const GROUP_LABEL = { bolalar: "Bolalar", ayollar: "Ayollar", erkaklar: "Erkaklar" };
+
+const byDisease = {};
+data.forEach(d => d.dis.forEach(x => { (byDisease[x] = byDisease[x] || []).push(d.name); }));
+
+const byFood = {};
+data.forEach(d => d.src.forEach(f => { (byFood[f] = byFood[f] || []).push(d.name); }));
+
+let cat = "all";
+let ctype = "all";
+let group = "ayollar";
+let openDisease = null;
+
+const list = document.getElementById("list");
+const searchBox = document.getElementById("search");
+
+function pills(arr, cls) {
+  return arr.map(s => `<span class="pill ${cls}">${s}</span>`).join("");
+}
+
+function matches(d, q) {
+  return !q ||
+    d.name.toLowerCase().includes(q) ||
+    d.symbol.toLowerCase().includes(q) ||
+    d.norm.toLowerCase().includes(q) ||
+    d.def.toLowerCase().includes(q) ||
+    d.dis.join(" ").toLowerCase().includes(q) ||
+    d.src.join(" ").toLowerCase().includes(q) ||
+    d.keys.includes(q);
+}
+
+function elementCards(items) {
+  if (!items.length) return '<div class="no-result">😕 Hech narsa topilmadi</div>';
+  return items.map(d => `
+    <div class="card">
+      <h3>${d.name} <span class="symbol">${d.symbol}</span></h3>
+      <div class="norm">📏 Kunlik norma: ${d.norm}</div>
+      <div class="section def">
+        <b>⚠️ Tanqisligida:</b> ${d.def}
+      </div>
+      <div class="section src">
+        <b>🥗 Manbalar:</b>
+        ${d.src.map(s => `<span class="badge">${s}</span>`).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderBarchasi(q) {
+  const items = data.filter(d => (ctype === "all" || d.cat === ctype) && matches(d, q));
+  return elementCards(items);
+}
+
+function renderMineral(q) {
+  const els = data.filter(d => matches(d, q));
+  let foods = Object.keys(byFood);
+  if (q) foods = foods.filter(f => f.toLowerCase().includes(q) || byFood[f].join(" ").toLowerCase().includes(q));
+  foods.sort((a, b) => byFood[b].length - byFood[a].length || a.localeCompare(b));
+
+  let h = '<div class="gt">🧪 Element → qaysi kasalliklar bo\'ladi</div>';
+  h += els.length ? els.map(d => `
+    <div class="card">
+      <h3>${d.name} <span class="symbol">${d.symbol}</span></h3>
+      <div class="section def"><b>⚠️ Kamligida rivojlanishi mumkin:</b>${pills(d.dis, "")}</div>
+      <div class="section src"><b>🥗 Nimalarda bor:</b>${pills(d.src, "fd")}</div>
+    </div>
+  `).join("") : '<div class="no-result">😕 Element topilmadi</div>';
+
+  h += '<div class="gt">🥗 Oziq-ovqat → tarkibida qaysi elementlar bor</div>';
+  h += foods.length ? foods.map(f => `
+    <div class="card">
+      <h3>${f} <span class="symbol">${byFood[f].length} element</span></h3>
+      <div class="section"><b>🧬 Tarkibida:</b>${pills(byFood[f], "el")}</div>
+    </div>
+  `).join("") : '<div class="no-result">😕 Oziq-ovqat topilmadi</div>';
+
+  return h;
+}
+
+function menuFor(elements) {
+  const foods = new Set();
+  elements.forEach(e => e.src.forEach(f => { if (!NO_MENU.includes(f)) foods.add(f); }));
+  const out = {};
+  Object.keys(MEALS).forEach(m => {
+    out[m] = MEALS[m].filter(f => foods.has(f)).slice(0, 5);
+  });
+  return out;
+}
+
+function renderKasallik(q) {
+  if (openDisease && byDisease[openDisease]) {
+    const els = byDisease[openDisease].map(n => data.find(d => d.name === n));
+    const m = menuFor(els);
+    let h = '<button class="back" data-back="1">← Kasalliklar ro\'yxatiga qaytish</button>';
+    h += `
+      <div class="card">
+        <h3>🩺 ${openDisease}</h3>
+        <div class="section"><b>Tanqisligi sabab bo'lishi mumkin:</b>${pills(els.map(e => e.name), "el")}</div>
+      </div>
+      <div class="gt">📏 ${GROUP_LABEL[group]} uchun kunlik me'yor</div>
+    `;
+    h += els.map(e => `
+      <div class="card">
+        <h3>${e.name} <span class="symbol">${e.symbol}</span></h3>
+        <div class="norm">📏 ${GROUP_LABEL[group]}: ${e.n[group]}</div>
+        <div class="section src"><b>🥗 Manbalar:</b>${pills(e.src, "fd")}</div>
+      </div>
+    `).join("");
+    h += '<div class="gt">🍽️ Taxminiy kunlik menyu</div><div class="card">';
+    h += Object.keys(MEAL_LABEL).map(k => `
+      <div class="meal">
+        <b>${MEAL_LABEL[k]}:</b>
+        ${m[k].length ? pills(m[k], "fd") : '<span class="badge">—</span>'}
+      </div>
+    `).join("");
+    h += '</div>';
+    h += '<div class="note">⚠️ Menyu — ovqat tanlash yo\'nalishi. Porsiyon grammari ko\'rsatilmagan: buning uchun har bir mahsulotning 100 g dagi element tarkibi kerak. Davolash dozalarini shifokor belgilaydi.</div>';
+    return h;
+  }
+
+  let names = Object.keys(byDisease);
+  if (q) names = names.filter(n => n.toLowerCase().includes(q) || byDisease[n].join(" ").toLowerCase().includes(q));
+  names.sort((a, b) => byDisease[b].length - byDisease[a].length || a.localeCompare(b));
+
+  if (!names.length) return '<div class="no-result">😕 Kasallik topilmadi</div>';
+
+  return '<div class="gt">🩺 Kasallikni tanlang — kunlik me\'yor va menyu chiqadi</div>' + names.map(n => `
+    <div class="card row" data-disease="${n}">
+      <h3>${n} <span class="symbol">${byDisease[n].length} element</span></h3>
+      <div class="section"><b>Sabab bo'lishi mumkin:</b>${pills(byDisease[n], "el")}</div>
+    </div>
+  `).join("");
+}
+
+function draw() {
+  const q = searchBox.value.toLowerCase().trim();
+  document.getElementById("gtabs").style.display = cat === "kasallik" ? "flex" : "none";
+  document.getElementById("ctabs").style.display = cat === "all" ? "flex" : "none";
+  if (cat === "mineral") list.innerHTML = renderMineral(q);
+  else if (cat === "kasallik") list.innerHTML = renderKasallik(q);
+  else list.innerHTML = renderBarchasi(q);
+}
+
+searchBox.addEventListener("input", () => { openDisease = null; draw(); });
+
+document.querySelectorAll("#tabs .tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#tabs .tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    cat = tab.dataset.cat;
+    openDisease = null;
+    draw();
+  });
+});
+
+document.querySelectorAll("#ctabs .tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#ctabs .tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    ctype = tab.dataset.ctype;
+    draw();
+  });
+});
+
+document.querySelectorAll("#gtabs .tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#gtabs .tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    group = tab.dataset.group;
+    draw();
+  });
+});
+
+list.addEventListener("click", e => {
+  const back = e.target.closest("[data-back]");
+  if (back) { openDisease = null; draw(); return; }
+  const row = e.target.closest("[data-disease]");
+  if (row) { openDisease = row.dataset.disease; draw(); window.scrollTo(0, 0); }
+});
+
+draw();
+</script>
+</body>
+</html>
