@@ -78,6 +78,17 @@
     background: #edf2f7; color: #2d3748; border: none; padding: 8px 14px;
     border-radius: 10px; font-size: 0.85rem; cursor: pointer; margin-bottom: 12px;
   }
+  .btn {
+    border: none; border-radius: 8px; background: #ebf4ff; color: #2b6cb0;
+    padding: 6px 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  }
+  .frow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .qty { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .bar { height: 6px; background: #edf2f7; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: #2b6cb0; }
+  .ok { color: #2f855a; } .warn { color: #b7791f; } .bad { color: #9b2c2c; }
+  .val { font-weight: 700; color: #2d3748; }
+  .muted { color: #718096; font-size: 0.8rem; }
   .no-result { text-align: center; padding: 30px; color: #718096; }
   .note {
     background: #fffaf0; border: 1px solid #f6e05e;
@@ -100,6 +111,7 @@
   <button class="tab active" data-cat="all">Barchasi</button>
   <button class="tab" data-cat="mineral">Minerallar</button>
   <button class="tab" data-cat="kasallik">Kasalliklar</button>
+  <button class="tab" data-cat="hisob">🧮 Hisoblagich</button>
 </div>
 
 <div class="tabs subtabs" id="ctabs">
@@ -516,6 +528,110 @@ const data = [
   }
 ];
 
+// Kunlik me'yor (RDA/AI). bolalar = 4–8 yosh, ayollar = 19–50, erkaklar = 19+.
+// null = RDA belgilanmagan. mg = milligramm, mkg = mikrogramm.
+const RDA = {
+  "Temir":       { u: "mg",  bolalar: 10,   ayollar: 18,    erkaklar: 8 },
+  "Rux":         { u: "mg",  bolalar: 5,    ayollar: 8,     erkaklar: 11 },
+  "Yod":         { u: "mkg", bolalar: 90,   ayollar: 150,   erkaklar: 150 },
+  "Selen":       { u: "mkg", bolalar: 30,   ayollar: 55,    erkaklar: 55 },
+  "Mis":         { u: "mkg", bolalar: 440,  ayollar: 900,   erkaklar: 900 },
+  "Marganets":   { u: "mg",  bolalar: 1.5,  ayollar: 1.8,   erkaklar: 2.3 },
+  "Xrom":        { u: "mkg", bolalar: 19,   ayollar: 25,    erkaklar: 35 },
+  "Molibden":    { u: "mkg", bolalar: 9,    ayollar: 45,    erkaklar: 45 },
+  "Ftor":        { u: "mg",  bolalar: 1.7,  ayollar: 3,     erkaklar: 4 },
+  "Kobalt":      null,
+  "Kremniy":     null,
+  "Kalsiy":      { u: "mg",  bolalar: 1000, ayollar: 1000,  erkaklar: 1000 },
+  "Magniy":      { u: "mg",  bolalar: 130,  ayollar: 310,   erkaklar: 400 },
+  "Fosfor":      { u: "mg",  bolalar: 500,  ayollar: 700,   erkaklar: 700 },
+  "Kaliy":       { u: "mg",  bolalar: 2300, ayollar: 2600,  erkaklar: 3400 },
+  "Natriy":      { u: "mg",  bolalar: 1200, ayollar: 1500,  erkaklar: 1500 },
+  "Xlor":        { u: "mg",  bolalar: 1200, ayollar: 2300,  erkaklar: 2300 },
+  "Vitamin A":   { u: "mkg", bolalar: 400,  ayollar: 700,   erkaklar: 900 },
+  "Vitamin B1":  { u: "mg",  bolalar: 0.6,  ayollar: 1.1,   erkaklar: 1.2 },
+  "Vitamin B2":  { u: "mg",  bolalar: 0.6,  ayollar: 1.1,   erkaklar: 1.3 },
+  "Vitamin B3":  { u: "mg",  bolalar: 8,    ayollar: 14,    erkaklar: 16 },
+  "Vitamin B5":  { u: "mg",  bolalar: 3,    ayollar: 5,     erkaklar: 5 },
+  "Vitamin B6":  { u: "mg",  bolalar: 0.6,  ayollar: 1.3,   erkaklar: 1.3 },
+  "Vitamin B7":  { u: "mkg", bolalar: 12,   ayollar: 30,    erkaklar: 30 },
+  "Vitamin B9":  { u: "mkg", bolalar: 200,  ayollar: 400,   erkaklar: 400 },
+  "Vitamin B12": { u: "mkg", bolalar: 1.8,  ayollar: 2.4,   erkaklar: 2.4 },
+  "Vitamin C":   { u: "mg",  bolalar: 25,   ayollar: 75,    erkaklar: 90 },
+  "Vitamin D":   { u: "mkg", bolalar: 15,   ayollar: 15,    erkaklar: 15 },
+  "Vitamin E":   { u: "mg",  bolalar: 7,    ayollar: 15,    erkaklar: 15 },
+  "Vitamin K":   { u: "mkg", bolalar: 55,   ayollar: 90,    erkaklar: 120 }
+};
+
+// Oziq-ovqat tarkibi: e = 100 grammdagi miqdor (mg yoki mkg, elementning birligida).
+// p = 1 porsiyon grammari, l = porsiyon tavsifi.
+const FOODS = {
+  "Sut": { p: 250, l: "1 stakan (250 g)", e: { "Kalsiy": 120, "Fosfor": 95, "Kaliy": 150, "Natriy": 45, "Magniy": 11, "Rux": 0.5, "Yod": 14, "Vitamin A": 46, "Vitamin B2": 0.18, "Vitamin B5": 0.35, "Vitamin B12": 0.42 } },
+  "Boyitilgan sut": { p: 250, l: "1 stakan (250 g)", e: { "Kalsiy": 125, "Fosfor": 95, "Kaliy": 150, "Natriy": 45, "Vitamin A": 60, "Vitamin D": 1.25, "Vitamin B2": 0.18, "Vitamin B12": 0.5 } },
+  "Qatiq": { p: 150, l: "1 stakan (150 g)", e: { "Kalsiy": 120, "Fosfor": 95, "Kaliy": 155, "Natriy": 50, "Magniy": 11, "Rux": 0.4, "Yod": 25, "Vitamin A": 17, "Vitamin B2": 0.21, "Vitamin B12": 0.37 } },
+  "Pishloq": { p: 30, l: "1 bo'lak (30 g)", e: { "Kalsiy": 700, "Fosfor": 500, "Natriy": 650, "Xlor": 600, "Rux": 3.6, "Selen": 10, "Vitamin A": 66, "Vitamin B2": 0.35, "Vitamin B12": 1.1, "Vitamin K": 2.5 } },
+  "Tuz": { p: 5, l: "1 choy qoshiqi (5 g)", e: { "Natriy": 39300, "Xlor": 60700 } },
+  "Yodlangan tuz": { p: 5, l: "1 choy qoshiqi (5 g)", e: { "Natriy": 39300, "Xlor": 60700, "Yod": 4500 } },
+  "Tuxum": { p: 50, l: "1 dona (50 g)", e: { "Temir": 1.2, "Rux": 0.6, "Selen": 31, "Fosfor": 198, "Kaliy": 138, "Natriy": 142, "Vitamin A": 160, "Vitamin B2": 0.46, "Vitamin B5": 1.6, "Vitamin B7": 20, "Vitamin B12": 1.1, "Vitamin D": 1.1, "Vitamin E": 0.9 } },
+  "Tuxum sariog'i": { p: 17, l: "1 dona sariog'i (17 g)", e: { "Temir": 2.7, "Rux": 1.3, "Selen": 38, "Mis": 130, "Fosfor": 288, "Vitamin A": 336, "Vitamin B5": 2.8, "Vitamin B7": 25, "Vitamin B12": 0.7, "Vitamin D": 2.9, "Vitamin E": 2.2 } },
+  "Jigar": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 6.5, "Rux": 4.8, "Selen": 36, "Mis": 890, "Molibden": 30, "Xrom": 12, "Fosfor": 360, "Kaliy": 310, "Natriy": 78, "Magniy": 20, "Vitamin A": 5000, "Vitamin B1": 0.9, "Vitamin B2": 2.2, "Vitamin B3": 15, "Vitamin B5": 5, "Vitamin B6": 0.5, "Vitamin B9": 240, "Vitamin B12": 60, "Vitamin K": 90 } },
+  "Go'sht": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 2.6, "Rux": 4.8, "Selen": 18, "Mis": 80, "Xrom": 2.5, "Fosfor": 190, "Kaliy": 330, "Natriy": 70, "Magniy": 21, "Vitamin B2": 0.2, "Vitamin B3": 5, "Vitamin B6": 0.4, "Vitamin B12": 2.0 } },
+  "Cho'chqa go'shti": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 1.4, "Rux": 3.3, "Selen": 30, "Fosfor": 210, "Kaliy": 360, "Natriy": 60, "Magniy": 25, "Vitamin B1": 0.9, "Vitamin B6": 0.4, "Vitamin B12": 0.6 } },
+  "Tovuq go'shti": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 1.0, "Rux": 2.4, "Selen": 20, "Fosfor": 200, "Kaliy": 330, "Natriy": 65, "Magniy": 25, "Vitamin B3": 10, "Vitamin B6": 0.5, "Vitamin B12": 0.3 } },
+  "Baliq": { p: 100, l: "1 porsiyon (100 g)", e: { "Rux": 0.5, "Selen": 30, "Yod": 65, "Fosfor": 200, "Kaliy": 400, "Natriy": 70, "Vitamin B6": 0.2, "Vitamin B12": 1.0, "Vitamin D": 1.0 } },
+  "Sarig' baliq": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 0.4, "Rux": 0.6, "Selen": 36, "Fosfor": 240, "Kaliy": 360, "Vitamin B3": 8, "Vitamin B12": 3.2, "Vitamin D": 10, "Vitamin E": 1.1 } },
+  "Dengiz baliqlari": { p: 100, l: "1 porsiyon (100 g)", e: { "Selen": 45, "Yod": 90, "Fosfor": 220, "Kaliy": 300, "Natriy": 80, "Vitamin B12": 4, "Vitamin D": 6 } },
+  "Sardina": { p: 100, l: "1 banka (100 g)", e: { "Temir": 2.8, "Rux": 1.3, "Selen": 52, "Yod": 80, "Kalsiy": 380, "Fosfor": 200, "Kaliy": 300, "Natriy": 300, "Vitamin B12": 8.9, "Vitamin D": 4.8 } },
+  "Dengiz mahsulotlari": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 2.0, "Rux": 3.5, "Selen": 60, "Mis": 400, "Yod": 140, "Fosfor": 200, "Kaliy": 260, "Natriy": 520, "Vitamin B12": 4 } },
+  "Baliq moyi": { p: 5, l: "1 choy qoshiqi (5 g)", e: { "Vitamin A": 135, "Vitamin D": 10 } },
+  "Loviya": { p: 100, l: "1 porsiyon (100 g, pishirilgan)", e: { "Temir": 2.9, "Rux": 1.0, "Marganets": 0.6, "Molibden": 34, "Magniy": 60, "Fosfor": 140, "Kaliy": 405, "Vitamin B1": 0.3, "Vitamin B6": 0.15, "Vitamin B9": 46 } },
+  "No'xat": { p: 100, l: "1 porsiyon (100 g, pishirilgan)", e: { "Temir": 2.9, "Rux": 1.5, "Marganets": 1.0, "Molibden": 30, "Magniy": 48, "Fosfor": 160, "Kaliy": 290, "Vitamin B1": 0.2, "Vitamin B6": 0.2, "Vitamin B9": 55 } },
+  "Guruch": { p: 150, l: "1 porsiyon (150 g, pishirilgan)", e: { "Temir": 0.2, "Magniy": 25, "Fosfor": 60, "Kaliy": 35, "Natriy": 2, "Vitamin B1": 0.06, "Vitamin B3": 0.4 } },
+  "Grechka": { p: 150, l: "1 porsiyon (150 g, qovog'i)", e: { "Temir": 1.3, "Rux": 1.0, "Marganets": 0.6, "Molibden": 10, "Magniy": 50, "Fosfor": 100, "Kaliy": 120, "Vitamin B1": 0.1, "Vitamin B6": 0.1 } },
+  "Suli": { p: 200, l: "1 stakan bo'tqa (200 g)", e: { "Temir": 0.9, "Rux": 1.2, "Marganets": 0.8, "Magniy": 25, "Fosfor": 110, "Kaliy": 106, "Natriy": 2, "Vitamin B1": 0.11, "Vitamin B5": 0.3, "Vitamin B6": 0.1, "Vitamin B7": 6 } },
+  "Arpa": { p: 100, l: "1 porsiyon (100 g, pishirilgan)", e: { "Temir": 2.8, "Rux": 1.5, "Selen": 20, "Magniy": 79, "Fosfor": 220, "Kaliy": 280, "Vitamin B1": 0.4 } },
+  "Butun don": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 3.5, "Rux": 2.2, "Selen": 40, "Mis": 300, "Xrom": 3.0, "Marganets": 3.0, "Magniy": 130, "Fosfor": 300, "Kaliy": 340, "Vitamin B1": 0.4, "Vitamin B3": 4.0, "Vitamin B9": 43 } },
+  "Butun don non": { p: 30, l: "1 bo'lak (30 g)", e: { "Temir": 2.5, "Rux": 1.1, "Selen": 20, "Marganets": 0.9, "Magniy": 45, "Fosfor": 110, "Kaliy": 115, "Natriy": 480, "Xlor": 750, "Vitamin B1": 0.3, "Vitamin B3": 2.0, "Vitamin B9": 33 } },
+  "Non": { p: 30, l: "1 bo'lak (30 g)", e: { "Temir": 1.0, "Rux": 0.6, "Magniy": 25, "Fosfor": 80, "Kaliy": 100, "Natriy": 430, "Vitamin B1": 0.3, "Vitamin B3": 2.0 } },
+  "Bug'doy kepagi": { p: 15, l: "1 osh qoshiqi (15 g)", e: { "Temir": 8, "Rux": 5, "Selen": 55, "Marganets": 10, "Magniy": 550, "Fosfor": 900, "Kaliy": 1600, "Natriy": 10, "Vitamin B1": 1.8, "Vitamin B9": 220 } },
+  "Kartoshka": { p: 150, l: "1 dona o'rtacha (150 g)", e: { "Temir": 0.9, "Rux": 0.3, "Magniy": 25, "Fosfor": 60, "Kaliy": 380, "Natriy": 6, "Vitamin B1": 0.06, "Vitamin B6": 0.4, "Vitamin C": 12 } },
+  "Pomidor": { p: 100, l: "1 dona (100 g)", e: { "Temir": 0.3, "Magniy": 11, "Fosfor": 26, "Kaliy": 237, "Vitamin A": 42, "Vitamin C": 14, "Vitamin K": 3 } },
+  "Sabzi": { p: 100, l: "1 dona (100 g)", e: { "Temir": 0.3, "Fosfor": 35, "Kaliy": 320, "Vitamin A": 835, "Vitamin B6": 0.14, "Vitamin K": 13 } },
+  "Jo'ka": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 0.8, "Magniy": 12, "Fosfor": 44, "Kaliy": 340, "Vitamin A": 426, "Vitamin C": 9 } },
+  "Qaralak": { p: 20, l: "1 osh qoshiqi maydalangan (20 g)", e: { "Temir": 6.2, "Kalsiy": 130, "Kaliy": 320, "Vitamin A": 830, "Vitamin C": 133, "Vitamin K": 13 } },
+  "Ismaloq": { p: 30, l: "1 bog'cha (30 g)", e: { "Temir": 2.7, "Rux": 0.7, "Marganets": 0.9, "Kalsiy": 99, "Magniy": 79, "Fosfor": 49, "Kaliy": 558, "Natriy": 79, "Xlor": 165, "Vitamin A": 469, "Vitamin B2": 0.2, "Vitamin B6": 0.4, "Vitamin B7": 12, "Vitamin B9": 194, "Vitamin C": 28, "Vitamin E": 2.0, "Vitamin K": 145 } },
+  "Brokkoli": { p: 100, l: "1 porsiyon (100 g)", e: { "Temir": 0.7, "Magniy": 21, "Kalsiy": 47, "Fosfor": 66, "Kaliy": 316, "Vitamin A": 31, "Vitamin B5": 0.6, "Vitamin B6": 0.2, "Vitamin B9": 90, "Vitamin C": 89, "Vitamin E": 1.5, "Vitamin K": 102 } },
+  "Oq karam": { p: 100, l: "1 porsiyon (100 g)", e: { "Kalsiy": 40, "Magniy": 12, "Fosfor": 26, "Kaliy": 170, "Natriy": 18, "Vitamin B9": 43, "Vitamin C": 37, "Vitamin K": 76 } },
+  "Salat bargi": { p: 50, l: "1 stakan (50 g)", e: { "Kalsiy": 37, "Kaliy": 200, "Vitamin A": 165, "Vitamin B9": 38, "Vitamin C": 9, "Vitamin K": 110 } },
+  "Marul": { p: 50, l: "1 stakan (50 g)", e: { "Kalsiy": 37, "Kaliy": 200, "Xlor": 100, "Vitamin A": 165, "Vitamin B9": 38, "Vitamin K": 110 } },
+  "Qo'ziqorin": { p: 80, l: "1 porsiyon (80 g)", e: { "Temir": 0.5, "Rux": 0.5, "Selen": 9, "Fosfor": 90, "Kaliy": 310, "Natriy": 5, "Vitamin B2": 0.3, "Vitamin B3": 5, "Vitamin B5": 1.5, "Vitamin D": 0.3 } },
+  "Bodring": { p: 100, l: "1 dona (100 g)", e: { "Magniy": 13, "Fosfor": 24, "Kaliy": 147, "Vitamin A": 8, "Vitamin C": 2.8, "Vitamin K": 16 } },
+  "Bolg'or qalampiri": { p: 100, l: "1 dona (100 g)", e: { "Temir": 0.5, "Kaliy": 211, "Vitamin A": 90, "Vitamin B6": 0.3, "Vitamin C": 80, "Vitamin K": 5 } },
+  "Avokado": { p: 100, l: "1/2 dona (100 g)", e: { "Rux": 0.6, "Mis": 190, "Magniy": 29, "Fosfor": 52, "Kaliy": 485, "Natriy": 7, "Vitamin A": 7, "Vitamin B5": 1.4, "Vitamin B6": 0.26, "Vitamin B9": 81, "Vitamin C": 10, "Vitamin E": 2.1, "Vitamin K": 21 } },
+  "Sarimsoq": { p: 5, l: "1 tish (5 g)", e: { "Temir": 1.4, "Selen": 14, "Marganets": 1.6, "Fosfor": 153, "Kaliy": 400 } },
+  "Yong'oq": { p: 30, l: "1 uchun (30 g)", e: { "Temir": 2.9, "Rux": 3.1, "Selen": 10, "Mis": 900, "Xrom": 2.0, "Magniy": 158, "Fosfor": 346, "Kaliy": 441, "Natriy": 3, "Vitamin B1": 0.34, "Vitamin B6": 0.54, "Vitamin B7": 6, "Vitamin B9": 20, "Vitamin E": 0.7 } },
+  "Yeryong'oq": { p: 30, l: "1 uchun (30 g)", e: { "Temir": 2.5, "Rux": 3.3, "Selen": 34, "Mis": 520, "Marganets": 1.7, "Magniy": 168, "Fosfor": 335, "Kaliy": 660, "Natriy": 18, "Vitamin B1": 0.64, "Vitamin B3": 12.9, "Vitamin B6": 0.4, "Vitamin B7": 60, "Vitamin B9": 87, "Vitamin E": 8 } },
+  "Bodom": { p: 30, l: "1 uchun (30 g)", e: { "Temir": 3.7, "Rux": 3.1, "Selen": 25, "Mis": 1030, "Marganets": 1.0, "Kalsiy": 269, "Magniy": 270, "Fosfor": 457, "Kaliy": 736, "Vitamin B2": 1.1, "Vitamin B3": 3.8, "Vitamin B9": 40, "Vitamin E": 26 } },
+  "Badam": { p: 30, l: "1 uchun (30 g)", e: { "Temir": 3.7, "Rux": 3.1, "Selen": 25, "Mis": 1030, "Kalsiy": 269, "Magniy": 270, "Fosfor": 457, "Kaliy": 736, "Vitamin B2": 1.1, "Vitamin E": 26 } },
+  "Qovoq urug'i": { p: 15, l: "1 osh qoshiqi (15 g)", e: { "Temir": 8.8, "Rux": 7.5, "Selen": 7, "Mis": 1100, "Marganets": 0.4, "Magniy": 550, "Fosfor": 1230, "Kaliy": 809, "Vitamin B1": 0.4, "Vitamin B7": 30, "Vitamin E": 2.2 } },
+  "Kungaboqar urug'i": { p: 15, l: "1 osh qoshiqi (15 g)", e: { "Temir": 5.6, "Rux": 5, "Selen": 53, "Mis": 1400, "Marganets": 1.9, "Magniy": 325, "Fosfor": 645, "Kaliy": 300, "Vitamin B1": 1.9, "Vitamin B5": 2.2, "Vitamin B6": 1.3, "Vitamin B9": 227, "Vitamin E": 52 } },
+  "Kakao": { p: 5, l: "1 choy qoshiqi (5 g)", e: { "Temir": 10, "Rux": 6.8, "Selen": 3, "Mis": 3800, "Magniy": 500, "Fosfor": 670, "Kaliy": 1520, "Vitamin B2": 0.3, "Vitamin B3": 4.6 } },
+  "Quruq mevalar": { p: 40, l: "1 uchun (40 g)", e: { "Temir": 2.4, "Kalsiy": 100, "Magniy": 60, "Fosfor": 80, "Kaliy": 900, "Vitamin K": 3 } },
+  "Quritilgan o'rik": { p: 40, l: "3–4 dona (40 g)", e: { "Temir": 3.4, "Kalsiy": 165, "Magniy": 69, "Fosfor": 87, "Kaliy": 1160, "Vitamin A": 112, "Vitamin K": 3 } },
+  "Mayiz": { p: 40, l: "1 uchun (40 g)", e: { "Temir": 1.8, "Kalsiy": 50, "Magniy": 28, "Fosfor": 49, "Kaliy": 749, "Vitamin B6": 0.2, "Vitamin K": 0.6 } },
+  "Banan": { p: 120, l: "1 dona (120 g)", e: { "Magniy": 27, "Fosfor": 22, "Kaliy": 358, "Marganets": 0.3, "Vitamin B6": 0.4, "Vitamin B9": 20, "Vitamin C": 9 } },
+  "Shoptul": { p: 150, l: "1 dona (150 g)", e: { "Temir": 0.3, "Kaliy": 197, "Vitamin A": 17, "Vitamin B3": 0.8, "Vitamin C": 7 } },
+  "Ananas": { p: 100, l: "1 tila (100 g)", e: { "Molibden": 4, "Marganets": 1.5, "Magniy": 12, "Kaliy": 109, "Vitamin B1": 0.08, "Vitamin B6": 0.24, "Vitamin B9": 18, "Vitamin C": 48 } },
+  "Kivi": { p: 75, l: "1 dona (75 g)", e: { "Mis": 75, "Magniy": 17, "Kaliy": 312, "Vitamin A": 4, "Vitamin B9": 25, "Vitamin C": 93, "Vitamin E": 1.5, "Vitamin K": 40 } },
+  "Qulupnay": { p: 100, l: "1 stakan (100 g)", e: { "Marganets": 0.4, "Magniy": 13, "Kaliy": 153, "Vitamin B9": 24, "Vitamin C": 59, "Vitamin K": 2 } },
+  "Limon": { p: 50, l: "1/2 dona (50 g)", e: { "Kalsiy": 26, "Kaliy": 138, "Vitamin B9": 11, "Vitamin C": 53 } },
+  "Ito'plaq (shipovnik)": { p: 100, l: "1 stakan (100 g)", e: { "Temir": 1.9, "Kaliy": 227, "Vitamin A": 50, "Vitamin C": 400, "Vitamin K": 26 } },
+  "O'simlik yog'i": { p: 15, l: "1 osh qoshiqi (15 g)", e: { "Vitamin E": 60, "Vitamin K": 5 } },
+  "Choy": { p: 200, l: "1 stakan demlangan (200 g)", e: { "Marganets": 0.45, "Ftor": 0.06 } },
+  "Ftorlangan suv": { p: 200, l: "1 stakan (200 g)", e: { "Ftor": 0.07 } },
+  "Yashil bargli sabzavotlar": { p: 50, l: "1 stakan (50 g)", e: { "Temir": 2.0, "Kalsiy": 80, "Magniy": 40, "Fosfor": 40, "Kaliy": 300, "Vitamin A": 200, "Vitamin B9": 100, "Vitamin C": 30, "Vitamin E": 1.5, "Vitamin K": 120 } }
+};
+
 const MEALS = {
   ertalab: ["Sut", "Boyitilgan sut", "Qatiq", "Sut mahsulotlari", "Suli", "Grechka", "Arpa", "Bug'doy kepagi", "Non", "Butun don non", "Butun don", "Tuxum", "Tuxum sariog'i", "Pishloq", "Kakao", "Banan", "Quritilgan o'rik", "Mayiz", "Quruq mevalar", "Ananas", "Shoptul", "Qulupnay", "Kivi", "Ito'plaq (shipovnik)", "Limon", "Yong'oq", "Bodom", "Badam", "Yeryong'oq", "Qovoq urug'i", "Kungaboqar urug'i", "Choy", "Ftorlangan suv"],
   obed: ["Go'sht", "Cho'chqa go'shti", "Tovuq go'shti", "Jigar", "Baliq", "Sarig' baliq", "Dengiz baliqlari", "Dengiz mahsulotlari", "Sardina", "Loviya", "No'xat", "Dukkaklilar", "Guruch", "Kartoshka", "Sabzi", "Jo'ka", "Qaralak", "Pomidor", "Brokkoli", "Qo'ziqorin", "Ismaloq", "Yashil bargli sabzavotlar", "Oq karam", "Marul", "Salat bargi", "Bodring", "Bolg'or qalampiri", "Avokado", "Sarimsoq", "O'simlik yog'i", "Yodlangan tuz", "Tuz", "Ananas", "Shoptul"],
@@ -536,6 +652,7 @@ let cat = "all";
 let ctype = "all";
 let group = "ayollar";
 let openDisease = null;
+let chosen = {};
 
 const list = document.getElementById("list");
 const searchBox = document.getElementById("search");
@@ -593,12 +710,16 @@ function renderMineral(q) {
   `).join("") : '<div class="no-result">😕 Element topilmadi</div>';
 
   h += '<div class="gt">🥗 Oziq-ovqat → tarkibida qaysi elementlar bor</div>';
-  h += foods.length ? foods.map(f => `
+  h += foods.length ? foods.map(f => {
+    const fd = FOODS[f];
+    return `
     <div class="card">
       <h3>${f} <span class="symbol">${byFood[f].length} element</span></h3>
       <div class="section"><b>🧬 Tarkibida:</b>${pills(byFood[f], "el")}</div>
-    </div>
-  `).join("") : '<div class="no-result">😕 Oziq-ovqat topilmadi</div>';
+      ${fd ? `<div class="section"><b>📋 100 g dagi tarkibi</b><span class="muted"> (${fd.l} = 1 porsiyon)</span><div>${compPills(fd.e, Object.keys(fd.e).length)}</div></div>`
+           : '<div class="muted">Umumiy guruh — aniq 100 g tarkibi keltirilmagan.</div>'}
+    </div>`;
+  }).join("") : '<div class="no-result">😕 Oziq-ovqat topilmadi</div>';
 
   return h;
 }
@@ -640,7 +761,7 @@ function renderKasallik(q) {
       </div>
     `).join("");
     h += '</div>';
-    h += '<div class="note">⚠️ Menyu — ovqat tanlash yo\'nalishi. Porsiyon grammari ko\'rsatilmagan: buning uchun har bir mahsulotning 100 g dagi element tarkibi kerak. Davolash dozalarini shifokor belgilaydi.</div>';
+    h += '<div class="note">⚠️ Menyu — ovqat tanlash yo\'nalishi. Aniq gramma va kunlik me\'yorga nisbatni <b>🧮 Hisoblagich</b> panelida ko\'ring (har bir mahsulotning 100 g dagi tarkibi keltirilgan). Davolash dozalarini shifokor belgilaydi.</div>';
     return h;
   }
 
@@ -658,13 +779,134 @@ function renderKasallik(q) {
   `).join("");
 }
 
+function fmtVal(v, u) {
+  const r = v >= 100 ? Math.round(v) : Math.round(v * 10) / 10;
+  return r + " " + u;
+}
+
+function symbolOf(name) {
+  const d = data.find(x => x.name === name);
+  return d ? d.symbol : "";
+}
+
+function collected() {
+  const sum = {};
+  Object.keys(chosen).forEach(f => {
+    const fd = FOODS[f];
+    if (!fd) return;
+    const g = chosen[f] * fd.p / 100;
+    Object.keys(fd.e).forEach(el => { sum[el] = (sum[el] || 0) + fd.e[el] * g; });
+  });
+  return sum;
+}
+
+function compPills(el, limit) {
+  // zichlik = 100 g dagi miqdorning kunlik me'yorga nisbati (birlardan qat'i nisol)
+  const dens = k => RDA[k] ? el[k] / RDA[k].ayollar : -1;
+  return Object.keys(el)
+    .sort((a, b) => dens(b) - dens(a))
+    .slice(0, limit)
+    .map(k => {
+      const r = RDA[k];
+      const v = r ? fmtVal(el[k], r.u) : Math.round(el[k] * 10) / 10;
+      return `<span class="badge">${k}: ${v}</span>`;
+    }).join("");
+}
+
+function renderHisob(q) {
+  const GRP = GROUP_LABEL[group];
+  const names = Object.keys(chosen);
+  const sum = collected();
+  let h = "";
+
+  if (names.length) {
+    h += `<div class="gt">🧾 Tanlangan ovqatlar · ${GRP}</div>`;
+    h += names.map(f => {
+      const fd = FOODS[f];
+      const jami = chosen[f] * fd.p;
+      return `
+        <div class="card">
+          <div class="frow">
+            <div>
+              <b>${f}</b> <span class="muted">${fd.l}</span>
+              <div class="section">${compPills(fd.e, 4)}</div>
+            </div>
+            <div class="qty">
+              <button class="btn" data-dec="${f}">−</button>
+              <span class="badge">${chosen[f]}×</span>
+              <button class="btn" data-inc="${f}">+</button>
+            </div>
+          </div>
+          <div class="muted">Jami ${jami} g · <button class="back" data-del="${f}" style="margin:0;padding:2px 8px;font-size:0.75rem">o'chirish</button></div>
+        </div>`;
+    }).join("");
+
+    const rows = Object.keys(sum).filter(el => RDA[el]).map(el => ({
+      el: el, got: sum[el], need: RDA[el][group], u: RDA[el].u
+    })).sort((a, b) => a.got / a.need - b.got / b.need);
+    const yetdi = rows.filter(r => r.got / r.need >= 1).length;
+
+    h += `<div class="gt">📊 Natija · ${yetdi}/${rows.length} element me'yorga yetdi</div>`;
+    h += rows.map(r => {
+      const pct = Math.round(r.got / r.need * 100);
+      const cls = pct >= 100 ? "ok" : (pct >= 50 ? "warn" : "bad");
+      return `
+        <div class="card">
+          <div class="frow">
+            <h3>${r.el} <span class="symbol">${symbolOf(r.el)}</span></h3>
+            <span class="badge ${cls}">${pct}%</span>
+          </div>
+          <div class="section">Top'langan: <span class="val">${fmtVal(r.got, r.u)}</span> · ${GRP} me'yori: <span class="val">${fmtVal(r.need, r.u)}</span></div>
+          <div class="bar"><i style="width:${Math.min(pct, 100)}%"></i></div>
+        </div>`;
+    }).join("");
+
+    const noRda = Object.keys(sum).filter(el => !RDA[el]);
+    const yoq = data.filter(d => RDA[d.name] && !sum[d.name]).map(d => d.name);
+    h += `
+      <div class="card">
+        <div class="section"><b>Umuman top'lanmadi:</b>${pills(yoq, "el")}</div>
+        ${noRda.length ? `<div class="muted">RDA belgilanmagan — hisoblanmadi: ${noRda.join(", ")}</div>` : ""}
+        <div class="muted" style="margin-top:8px"><button class="back" data-clear="1" style="margin:0">Barchasini tozalash</button></div>
+      </div>`;
+    h += '<div class="note">⚠️ Natija taxminiy: o\'rtacha tarkib va oddiy porsiyonlar asosida. Kasallik davolashini shifokor belgilaydi.</div>';
+  } else {
+    h += '<div class="note">🧮 Hali ovqat tanlanmagan. Quyidagi ro\'yxatdan qo\'shing — ertalab / obed / kechga emas, kunlik me\'yorga qancha element to\'planishini ko\'rsatadi.</div>';
+  }
+
+  let foods = Object.keys(FOODS);
+  if (q) foods = foods.filter(f => f.toLowerCase().includes(q) || Object.keys(FOODS[f].e).some(el => el.toLowerCase().includes(q)));
+
+  h += `<div class="gt">➕ Ovqat qo'shish (${foods.length})</div>`;
+  h += '<div class="muted" style="margin-bottom:10px">Miqdorlar 100 grammda: ' + Object.keys(RDA).filter(k => RDA[k]).length + " element bo\'yicha.</div>";
+  h += foods.length ? foods.map(f => `
+    <div class="card">
+      <div class="frow">
+        <div>
+          <b>${f}</b> <span class="muted">${FOODS[f].l}</span>
+          <div class="section">${compPills(FOODS[f].e, 4)}</div>
+        </div>
+        <button class="btn" data-add="${f}">+ Qo'shish</button>
+      </div>
+    </div>`).join("") : '<div class="no-result">😕 Ovqat topilmadi</div>';
+
+  return h;
+}
+
 function draw() {
   const q = searchBox.value.toLowerCase().trim();
-  document.getElementById("gtabs").style.display = cat === "kasallik" ? "flex" : "none";
+  document.getElementById("gtabs").style.display = (cat === "kasallik" || cat === "hisob") ? "flex" : "none";
   document.getElementById("ctabs").style.display = cat === "all" ? "flex" : "none";
   if (cat === "mineral") list.innerHTML = renderMineral(q);
   else if (cat === "kasallik") list.innerHTML = renderKasallik(q);
+  else if (cat === "hisob") list.innerHTML = renderHisob(q);
   else list.innerHTML = renderBarchasi(q);
+}
+
+function redrawKeep() {
+  const y = window.scrollY;
+  draw();
+  window.scrollTo(0, y);
 }
 
 searchBox.addEventListener("input", () => { openDisease = null; draw(); });
@@ -700,6 +942,16 @@ document.querySelectorAll("#gtabs .tab").forEach(tab => {
 list.addEventListener("click", e => {
   const back = e.target.closest("[data-back]");
   if (back) { openDisease = null; draw(); return; }
+  const add = e.target.closest("[data-add]");
+  if (add) { const f = add.dataset.add; chosen[f] = (chosen[f] || 0) + 1; redrawKeep(); return; }
+  const inc = e.target.closest("[data-inc]");
+  if (inc) { chosen[inc.dataset.inc]++; redrawKeep(); return; }
+  const dec = e.target.closest("[data-dec]");
+  if (dec) { const f = dec.dataset.dec; if (--chosen[f] <= 0) delete chosen[f]; redrawKeep(); return; }
+  const del = e.target.closest("[data-del]");
+  if (del) { delete chosen[del.dataset.del]; redrawKeep(); return; }
+  const clear = e.target.closest("[data-clear]");
+  if (clear) { chosen = {}; redrawKeep(); return; }
   const row = e.target.closest("[data-disease]");
   if (row) { openDisease = row.dataset.disease; draw(); window.scrollTo(0, 0); }
 });
